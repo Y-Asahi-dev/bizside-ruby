@@ -161,25 +161,16 @@ module Resque
       #   @see https://refspecs.linuxfoundation.org/LSB_5.0.0/LSB-Common/LSB-Common/rcommands.html
       def hostname
         return @hostname if defined?(@hostname) && @hostname && !@hostname.to_s.empty?
-    
-        begin
-          name = Socket.gethostname.to_s
-          unless name.empty?
-            @hostname = name
-            return @hostname
-          end
-        rescue
-          # ignore
+      
+        @hostname ||= begin
+            n = (Socket.gethostname rescue nil).to_s
+            n = nil if n.empty?
+            if n.nil?
+            n = (`hostname`.to_s.strip rescue nil)
+            n = nil if n && n.empty?
+            end
+            n || '(unknown)'
         end
-    
-        begin
-          name = `hostname`.to_s.strip
-          return name unless name.empty?
-        rescue
-          # ignore
-        end
-    
-        '(unknown)'
       end
 
     end
