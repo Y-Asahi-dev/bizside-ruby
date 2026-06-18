@@ -10,6 +10,8 @@ require 'resque/failure/multiple'
 require 'resque/failure/redis'
 require_relative 'audit/job_logger'
 
+require 'socket'
+
 {
   yaml: ['config/resque.yml', 'config/redis.yml'],
   json: ['config/resque.json', 'config/redis.json']
@@ -205,7 +207,16 @@ if defined? Resque::Scheduler
             "#{Array(exception.backtrace).join("\n")}"
           ].join("\n")
 
-          @hostname ||= (`hostname`.chomp rescue '(unknown)')
+          @hostname ||= begin
+            n = (Socket.gethostname rescue nil).to_s
+            n = nil if n.empty?
+            if n.nil?
+              n = (`hostname`.to_s.strip rescue nil)
+              n = nil if n && n.empty?
+            end
+            n || '(unknown)'
+          end
+
           info = {
             time: Time.now.strftime('%Y-%m-%dT%H:%M:%S.%3N%z'),
             env: ENV['X-BIZSIDE-ENV'].presence || ENV['RAILS_ENV'],
