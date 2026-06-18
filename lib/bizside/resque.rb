@@ -158,7 +158,26 @@ module Resque
       # * hostname(1) は Linux Standard Base 共通コマンドのため必ず存在する。
       #   @see https://refspecs.linuxfoundation.org/LSB_5.0.0/LSB-Common/LSB-Common/rcommands.html
       def hostname
-        @hostname ||= (`hostname`.chomp rescue '(unknown)')
+        return @hostname if defined?(@hostname) && @hostname && !@hostname.to_s.empty?
+    
+        begin
+          name = Socket.gethostname.to_s
+          unless name.empty?
+            @hostname = name
+            return @hostname
+          end
+        rescue
+          # ignore
+        end
+    
+        begin
+          name = `hostname`.to_s.strip
+          return name unless name.empty?
+        rescue
+          # ignore
+        end
+    
+        '(unknown)'
       end
 
     end
