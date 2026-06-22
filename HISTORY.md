@@ -1,3 +1,6 @@
+## 3.1.8
+  * ジョブ監査ログのserver_address取得時にSocket.gethostnameを優先するように変更
+
 ## 3.1.7
   * MultiJSON の以下の警告が出ないバージョンに制限
     ```
